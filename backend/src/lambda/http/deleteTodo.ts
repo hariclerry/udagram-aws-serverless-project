@@ -1,16 +1,25 @@
 import 'source-map-support/register'
 
-import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  APIGatewayProxyHandler
-} from 'aws-lambda'
+import * as middy from 'middy'
+import { cors } from 'middy/middlewares'
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
-export const handler: APIGatewayProxyHandler = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
-  const todoId = event.pathParameters.todoId
+import { deleteTodo } from '../../businessLogic/Todo'
+import { createLogger } from '../../utils/logger'
 
-  // TODO: Remove a TODO item by id
-  return undefined
-}
+const logger = createLogger('delete')
+
+export const handler = middy(
+  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    logger.info(`Processing event ${event}`)
+
+    const { todoId } = event.pathParameters
+    const authHeader = event.headers.Authorization
+    deleteTodo(todoId, authHeader)
+
+    return {
+      statusCode: 200,
+      body: ''
+    }
+  }
+).use(cors())

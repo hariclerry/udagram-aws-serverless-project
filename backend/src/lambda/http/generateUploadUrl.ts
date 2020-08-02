@@ -1,42 +1,26 @@
 import 'source-map-support/register'
 
-import {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  APIGatewayProxyHandler
-} from 'aws-lambda'
-import * as AWS from 'aws-sdk'
+import * as middy from 'middy'
+import { cors } from 'middy/middlewares'
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
-const s3 = new AWS.S3({
-  signatureVersion: 'v4'
-})
+import { generateSignedUrl } from '../../s3/generateSignedUrl'
+import { createLogger } from '../../utils/logger'
 
-const bucketName = process.env.IMAGES_S3_BUCKET
-const urlExpiration = 60 * 5
+const logger = createLogger('Image upload')
 
-export const handler: APIGatewayProxyHandler = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
-  const todoId = event.pathParameters.todoId
+export const handler = middy(
+  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    logger.info(`Processing event ${event}`)
 
-  // TODO: Return a presigned URL to upload a file for a TODO item with the provided id
-     const url = getUploadUrl(todoId)
+    const { todoId } = event.pathParameters
+    const signedUrl = generateSignedUrl(todoId)
 
-     return {
-       statusCode: 201,
-       headers: {
-         'Access-Control-Allow-Origin': '*'
-       },
-       body: JSON.stringify({
-         uploadUrl: url
-       })
-     }
-
-   function getUploadUrl(todoId: string) {
-     return s3.getSignedUrl('putObject', {
-       Bucket: bucketName,
-       Key: todoId,
-       Expires: urlExpiration
-     })
-   }
-}
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        uploadUrl: signedUrl
+      })
+    }
+  }
+).use(cors())
