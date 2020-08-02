@@ -4,7 +4,6 @@ import { TodoItem } from '../models/TodoItem'
 import { TodoAccess } from '../dataLayer/todoAccess'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
-import { TodoUpdate } from '../models/TodoUpdate'
 import { getUserId } from '../auth/utils'
 
 const todoAccess = new TodoAccess()
@@ -40,19 +39,28 @@ export async function createTodo(
   return newTodo
 }
 
-export async function updateTodo( todoId: string,
-  updateTodoItem: UpdateTodoRequest,
+export async function updateTodo(
+  todoId: string,
+  updatedTodo: UpdateTodoRequest,
   authHeader: string
 ) {
+  const { done } = updatedTodo
   const userId = getUserId(authHeader)
-  const todoUpdate: TodoUpdate = {
-    ...updateTodoItem
-  }
-  await todoAccess.updateTodo(todoId, todoUpdate, userId)
-  return todoUpdate
+
+  await todoAccess.updateTodo(todoId, done, userId)
+  return updatedTodo
 }
 
 export async function deleteTodo(todoId: string, authHeader: string) {
   const userId = getUserId(authHeader)
   return await todoAccess.deleteTodo(todoId, userId)
+}
+
+export async function uploadTodoAttachment(
+  todoId: string,
+  authHeader: string,
+  attachmentUrl: string
+) {
+  const userId = getUserId(authHeader)
+  await todoAccess.uploadTodoAttachment(todoId, userId, attachmentUrl)
 }

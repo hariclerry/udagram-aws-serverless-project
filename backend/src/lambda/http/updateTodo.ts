@@ -4,7 +4,7 @@ import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-import { updateTodo } from '../../businessLogic/Todo'
+import { updateTodo } from '../../businessLogic/todo'
 import { createLogger } from '../../utils/logger'
 
 const logger = createLogger('update')
@@ -17,7 +17,7 @@ export const handler = middy(
     const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
     const authHeader = event.headers.Authorization
 
-    updateTodo(todoId, updatedTodo, authHeader)
+    await updateTodo(todoId, updatedTodo, authHeader)
 
     return {
       statusCode: 200,

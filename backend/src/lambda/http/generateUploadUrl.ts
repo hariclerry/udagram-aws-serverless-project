@@ -6,8 +6,10 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
 import { generateSignedUrl } from '../../s3/generateSignedUrl'
 import { createLogger } from '../../utils/logger'
+import { uploadTodoAttachment } from '../../businessLogic/todo'
 
 const logger = createLogger('Image upload')
+const bucketName = process.env.IMAGES_S3_BUCKET
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -15,6 +17,11 @@ export const handler = middy(
 
     const { todoId } = event.pathParameters
     const signedUrl = generateSignedUrl(todoId)
+    const authHeader = event.headers.Authorization
+    const attachmentUrl = `https://${bucketName}.s3.amazonaws.com/${todoId}`
+
+    await uploadTodoAttachment(todoId, authHeader, attachmentUrl)
+
 
     return {
       statusCode: 200,

@@ -3,7 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
-import { createTodo } from '../../businessLogic/Todo'
+import { createTodo } from '../../businessLogic/todo'
 import { createLogger } from '../../utils/logger'
 
 const logger = createLogger('createTodo')

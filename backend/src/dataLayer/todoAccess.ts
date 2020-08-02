@@ -1,7 +1,6 @@
 import * as AWS from 'aws-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { TodoItem } from '../models/TodoItem'
-import { TodoUpdate } from '../models/TodoUpdate'
 
 const AWSXRay = require('aws-xray-sdk')
 const XAWS = AWSXRay.captureAWS(AWS)
@@ -37,25 +36,17 @@ export class TodoAccess {
     return todo as TodoItem
   }
 
-  async updateTodo(
-    todoId: string,
-    todo: TodoUpdate,
-    userId: string
-  ): Promise<TodoUpdate> {
-    await this.docClient
-      .update({
-        TableName: this.todosTable,
-        Key: { todoId, userId },
-        UpdateExpression: 'SET #nm = :name, dueDate = :dueDate, done = :done',
-        ConditionExpression: 'todoId = :todoId',
-        ExpressionAttributeValues: {
-          ':name': todo.name,
-          ':dueDate': todo.dueDate,
-          ':done': todo.done
-        }
-      })
-      .promise()
-    return todo as TodoUpdate
+  async updateTodo(todoId: string, done: boolean, userId: string) {
+    await this.docClient.update({
+      TableName: this.todosTable,
+      Key: { todoId, userId },
+      UpdateExpression: 'set done = :done',
+      ConditionExpression: 'todoId = :todoId',
+      ExpressionAttributeValues: {
+        ':todoId': todoId,
+        ':done': done
+      }
+    }).promise()
   }
 
   async deleteTodo(todoId: string, userId: string): Promise<string> {
@@ -66,6 +57,25 @@ export class TodoAccess {
       })
       .promise()
     return Promise.resolve(todoId)
+  }
+
+  async uploadTodoAttachment(
+    todoId: string,
+    userId: string,
+    attachmentUrl: string
+  ): Promise<void> {
+    await this.docClient
+      .update({
+        TableName: this.todosTable,
+        Key: { todoId, userId },
+        UpdateExpression: 'set attachmentUrl = :attachmentUrl',
+        ConditionExpression: 'todoId = :todoId',
+        ExpressionAttributeValues: {
+          ':todoId': todoId,
+          ':attachmentUrl': attachmentUrl
+        }
+      })
+      .promise()
   }
 }
 

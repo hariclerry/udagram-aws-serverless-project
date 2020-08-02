@@ -3,7 +3,7 @@ import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 
-import { getTodos } from '../../businessLogic/Todo'
+import { getTodos } from '../../businessLogic/todo'
 import { createLogger } from '../../utils/logger'
 
 const logger = createLogger('get')
@@ -15,7 +15,6 @@ export const handler = middy(
 
     const authHeader = event.headers.Authorization
     const todos = await getTodos(authHeader)
-    console.log('******todosss*********')
 
     return {
       statusCode: 200,
